@@ -1,3 +1,6 @@
+@import "tailwindcss/preflight";
+@import "tailwindcss/utilities";
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -25,9 +28,16 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  place-items: center; 
+  min-height: 100vh; 
+}
+
+#root {
+  width: 100%;
+  max-width: 1280px; 
+  padding: 1rem; 
+  margin: 0 auto; 
+  text-align: center; 
 }
 
 h1 {
