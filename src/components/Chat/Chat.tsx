@@ -61,8 +61,6 @@ export default function Chat() {
 			<div className={styles.chatToolbar}>
 				<div className={styles.chatInputContainer}>
 					<form
-						// biome-ignore lint/a11y/noAutofocus: <explanation>
-						autoFocus
 						onSubmit={submitMessage}
 						style={{ display: "flex", alignItems: "center", height: "100%" }}
 					>
