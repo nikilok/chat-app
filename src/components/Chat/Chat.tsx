@@ -111,6 +111,7 @@ export default function Chat() {
 							name="messageInput"
 							// biome-ignore lint/a11y/noAutofocus: <explanation>
 							autoFocus
+							autoComplete="off"
 							className={styles.chatInput}
 							placeholder="Type a message..."
 						/>
