@@ -1,10 +1,39 @@
 import { useState } from "react";
 import styles from "./Chat.module.css";
+import ChatBubble from "./ChatBubble";
 
 type ChatMessage = {
 	text: string;
-	source: "you" | "other" | "system";
+	source: "you" | "other";
 	timeStamp: string;
+};
+
+type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
+
+const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
+	const groupedMessages: GroupedMessage[] = [];
+	let lastMessageTime = 0;
+
+	messages.forEach((message, index) => {
+		const currentTime = new Date(Number.parseInt(message.timeStamp));
+		if (
+			index === 0 ||
+			currentTime.getTime() - lastMessageTime > 3600000 // More than an hour
+		) {
+			groupedMessages.push({
+				type: "timestamp",
+				value: currentTime.toLocaleString("en-US", {
+					weekday: "short",
+					hour: "2-digit",
+					minute: "2-digit",
+				}),
+			});
+		}
+		groupedMessages.push(message);
+		lastMessageTime = currentTime.getTime();
+	});
+
+	return groupedMessages;
 };
 
 export default function Chat() {
@@ -33,27 +62,41 @@ export default function Chat() {
 		}
 	};
 
+	const groupedMessages = groupMessages(messages);
+
 	return (
 		<main style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
 			{/* Chat Container */}
 			<div className={styles.chatContainer}>
-				{/* <div>Today, 1:06PM</div>
-				<div className={styles.chatBubble}>
-					Hey did you go someplace today Hey did you go someplace today ?
-				</div>
-				<div className={styles.chatBubbleOther}>
-					Yes I went to Oxford, how about you ?
-				</div>
-				<div className={styles.chatBubble}>Was at home mostly</div> */}
-				{messages.map((m) => {
-					if (m.source === "you") {
-						return <div className={styles.chatBubble}>{m.text}</div>;
+				{groupedMessages.map((m, index) => {
+					if ("type" in m && m.type === "timestamp") {
+						return (
+							<div key={`timestamp-${m.value}`} className={styles.timestamp}>
+								{m.value}
+							</div>
+						);
 					}
-					if (m.source === "other") {
-						return <div className={styles.chatBubbleOther}>{m.text}</div>;
-					}
-					if (m.source === "system") {
-						return <div>{m.text}</div>;
+					if ("source" in m && (m.source === "you" || m.source === "other")) {
+						const isSameSource =
+							index > 0 &&
+							"source" in groupedMessages[index - 1] &&
+							(groupedMessages[index - 1] as ChatMessage).source === m.source;
+						const timeDifference =
+							index > 0
+								? Number.parseInt(m.timeStamp) -
+									Number.parseInt(
+										(groupedMessages[index - 1] as ChatMessage).timeStamp,
+									)
+								: Number.MAX_SAFE_INTEGER;
+						return (
+							<ChatBubble
+								key={`${m.source}-${m.timeStamp}`}
+								text={m.text}
+								timeDifference={timeDifference}
+								isSameSource={isSameSource}
+								source={m.source}
+							/>
+						);
 					}
 				})}
 			</div>

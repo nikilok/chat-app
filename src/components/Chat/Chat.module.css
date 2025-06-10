@@ -16,6 +16,7 @@
 	margin: 20px;
 	padding: 10px;
 	align-self: flex-end;
+	transition: margin-top 0.2s ease;
 }
 
 .chatBubbleOther {
@@ -26,6 +27,15 @@
 	margin: 20px;
 	padding: 10px;
 	align-self: flex-start;
+	transition: margin-top 0.2s ease;
+}
+
+/* Timestamp styles */
+.timestamp {
+	text-align: center;
+	color: #6b7280;
+	font-size: 0.9em;
+	margin: 10px 0;
 }
 
 .chatToolbar {
