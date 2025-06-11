@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
 
@@ -10,36 +10,45 @@ type ChatMessage = {
 
 type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
 
-const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
-	const groupedMessages: GroupedMessage[] = [];
-	let lastMessageTime = 0;
-
-	messages.forEach((message, index) => {
-		const currentTime = new Date(Number.parseInt(message.timeStamp));
-		if (
-			index === 0 ||
-			currentTime.getTime() - lastMessageTime > 3600000 // More than an hour
-		) {
-			groupedMessages.push({
-				type: "timestamp",
-				value: currentTime.toLocaleString("en-US", {
-					weekday: "short",
-					hour: "2-digit",
-					minute: "2-digit",
-				}),
-			});
-		}
-		groupedMessages.push(message);
-		lastMessageTime = currentTime.getTime();
-	});
-
-	return groupedMessages;
-};
-
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([
 		{ text: "hi there", source: "other", timeStamp: Date.now().toString() },
 	]);
+
+	const chatContainerRef = useRef<HTMLDivElement>(null);
+
+	const scrollToBottom = () => {
+		if (chatContainerRef.current) {
+			chatContainerRef.current.scrollTop =
+				chatContainerRef.current.scrollHeight;
+		}
+	};
+
+	const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
+		const groupedMessages: GroupedMessage[] = [];
+		let lastMessageTime = 0;
+
+		messages.forEach((message, index) => {
+			const currentTime = new Date(Number.parseInt(message.timeStamp));
+			if (
+				index === 0 ||
+				currentTime.getTime() - lastMessageTime > 3600000 // More than an hour
+			) {
+				groupedMessages.push({
+					type: "timestamp",
+					value: currentTime.toLocaleString("en-US", {
+						weekday: "short",
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+				});
+			}
+			groupedMessages.push(message);
+			lastMessageTime = currentTime.getTime();
+		});
+
+		return groupedMessages;
+	};
 
 	const submitMessage = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -59,6 +68,7 @@ export default function Chat() {
 				},
 			]);
 			(e.target as HTMLFormElement).reset();
+			setTimeout(() => scrollToBottom(), 0);
 		}
 	};
 
@@ -67,7 +77,8 @@ export default function Chat() {
 	return (
 		<main style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
 			{/* Chat Container */}
-			<div className={styles.chatContainer}>
+			<div ref={chatContainerRef} className={styles.chatContainer}>
+				<div style={{ flex: 1 }} />
 				{groupedMessages.map((m, index) => {
 					if ("type" in m && m.type === "timestamp") {
 						return (

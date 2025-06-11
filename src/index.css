@@ -1,10 +1,7 @@
 /* Reset styles */
 body {
 	margin: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 100vh;
+	/* height: 100vh; */
 	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
@@ -12,13 +9,6 @@ body {
 	background-color: white;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}
-
-#root {
-	width: 100%;
-	max-width: 1280px;
-	margin: 0 auto;
-	text-align: center;
 }
 
 h1 {
