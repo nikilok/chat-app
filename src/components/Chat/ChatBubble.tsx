@@ -1,5 +1,5 @@
 import type React from "react";
-import styles from "./Chat.module.css";
+import styles from "./ChatBubble.module.css";
 
 type ChatBubbleProps = {
 	text: string;
