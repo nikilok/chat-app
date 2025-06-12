@@ -58,7 +58,7 @@ export default function Chat() {
 			};
 		};
 		const message = target.elements.messageInput.value;
-		if (message) {
+		if (message.trim()) {
 			setMessages((s) => [
 				...s,
 				{
