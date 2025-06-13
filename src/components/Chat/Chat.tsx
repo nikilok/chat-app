@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
+import SendIcon from "../../assets/send.svg";
 
 type ChatMessage = {
 	text: string;
@@ -126,6 +127,14 @@ export default function Chat() {
 							className={styles.chatInput}
 							placeholder="Type a message..."
 						/>
+						<button type="submit" aria-label="Send Message">
+							<img
+								src={SendIcon}
+								alt="Send Message Icon"
+								width="20"
+								height="20"
+							/>
+						</button>
 					</form>
 				</div>
 			</div>
