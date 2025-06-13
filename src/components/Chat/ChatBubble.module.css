@@ -9,6 +9,13 @@
 	transition: margin-top 0.2s ease;
 }
 
+.emojiBubble {
+	max-width: clamp(200px, 80%, 400px);
+	margin: 20px;
+	font-size: 2rem;
+	align-self: flex-end;
+}
+
 .chatBubbleOther {
 	max-width: clamp(200px, 80%, 400px);
 	background-color: #d1d1d1;
@@ -18,4 +25,11 @@
 	padding: 10px;
 	align-self: flex-start;
 	transition: margin-top 0.2s ease;
+}
+
+.emojiBubbleOther {
+	max-width: clamp(200px, 80%, 400px);
+	margin: 20px;
+	font-size: 2rem;
+	align-self: flex-start;
 }

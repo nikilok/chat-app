@@ -14,6 +14,7 @@ type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([
 		{ text: "hi there", source: "other", timeStamp: Date.now().toString() },
+		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
 	]);
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);

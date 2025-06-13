@@ -1,5 +1,6 @@
 import type React from "react";
 import styles from "./ChatBubble.module.css";
+import isEmoji from "./utils/isEmoji";
 
 type ChatBubbleProps = {
 	text: string;
@@ -20,6 +21,21 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 				? "-15px"
 				: "5px"
 			: "20px";
+
+	const renderAsEmoji = isEmoji(text);
+
+	if (renderAsEmoji) {
+		return (
+			<div
+				className={
+					source === "you" ? styles.emojiBubble : styles.emojiBubbleOther
+				}
+				style={{ marginTop }}
+			>
+				{text}
+			</div>
+		);
+	}
 
 	return (
 		<div
