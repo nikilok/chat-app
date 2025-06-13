@@ -13,7 +13,7 @@ type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
 
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([
-		{ text: "hi there", source: "other", timeStamp: Date.now().toString() },
+		{ text: "hi there", source: "other", timeStamp: (Date.now() - 1000).toString() },
 		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
 	]);
 
