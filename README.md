@@ -39,7 +39,9 @@ Currently, two official plugins are available:
 
 <img width="867" alt="image" src="https://github.com/user-attachments/assets/a6828f9d-4731-4daa-8761-e00dcee8dc6a" />
 <img width="873" alt="image" src="https://github.com/user-attachments/assets/d82b13aa-c373-4d1e-93e7-b37c5d26329e" />
+
 Animated bounce and Emoji detection to render it differently
+
 <img width="401" alt="image" src="https://github.com/user-attachments/assets/b6179398-6604-4b30-b9ca-add70cf87861" />
 
 ## Run tests
