@@ -1,0 +1,3 @@
+[test]
+# For now, don't use Bun's test runner for DOM tests
+# Use vitest instead via npm scripts

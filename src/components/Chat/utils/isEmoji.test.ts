@@ -13,6 +13,7 @@ describe("isEmoji", () => {
 		["❤️", true],
 		["😀😍", true],
 		["  😀  ", true],
+		["🪂", true],
 		["a", false],
 		["hello", false],
 		["1", false],
