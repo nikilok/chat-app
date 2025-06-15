@@ -8,6 +8,18 @@
 	align-self: flex-end;
 	transition: margin-top 0.2s ease;
 }
+.chatBubbleInAppropriate {
+	opacity: 0.5;
+	max-width: clamp(200px, 80%, 400px);
+	background-color: #f8717198;
+	border: 2px dashed #be4242;
+	border-radius: 10px;
+	border-bottom-right-radius: 2px;
+	margin: 20px;
+	padding: 10px;
+	align-self: flex-end;
+	transition: margin-top 0.2s ease;
+}
 
 .emojiBubble {
 	max-width: clamp(200px, 80%, 400px);
@@ -34,6 +46,12 @@
 	font-size: 2rem;
 	align-self: flex-start;
 	animation: bounce 1.2s ease-out;
+}
+
+.inappropriate {
+	font-size: 0.8em;
+	width: clamp(200px, 80%, 400px);
+	align-self: flex-end;
 }
 
 @keyframes bounce {
