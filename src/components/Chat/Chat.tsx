@@ -2,11 +2,13 @@ import { useState, useRef } from "react";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
 import SendIcon from "../../assets/send.svg";
+import isInAppropriate from "./utils/useIsInAppropriate";
 
 type ChatMessage = {
 	text: string;
 	source: "you" | "other";
 	timeStamp: string;
+	isMessageInAppropriate?: boolean;
 };
 
 type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
@@ -56,7 +58,7 @@ export default function Chat() {
 		return groupedMessages;
 	};
 
-	const submitMessage = (e: React.FormEvent<HTMLFormElement>) => {
+	const submitMessage = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const target = e.target as HTMLFormElement & {
 			elements: HTMLFormControlsCollection & {
@@ -64,6 +66,8 @@ export default function Chat() {
 			};
 		};
 		const message = target.elements.messageInput.value;
+		const isMessageInAppropriate = await isInAppropriate(message);
+
 		if (message.trim()) {
 			setMessages((s) => [
 				...s,
@@ -71,6 +75,7 @@ export default function Chat() {
 					text: message,
 					source: "you",
 					timeStamp: Date.now().toString(),
+					isMessageInAppropriate,
 				},
 			]);
 			(e.target as HTMLFormElement).reset();
@@ -112,6 +117,7 @@ export default function Chat() {
 								timeDifference={timeDifference}
 								isSameSource={isSameSource}
 								source={m.source}
+								isInAppropriate={m.isMessageInAppropriate}
 							/>
 						);
 					}
