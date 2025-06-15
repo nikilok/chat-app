@@ -7,6 +7,7 @@ type ChatBubbleProps = {
 	timeDifference: number;
 	isSameSource: boolean;
 	source: "you" | "other";
+	isInAppropriate?: boolean;
 };
 
 const ChatBubble: React.FC<ChatBubbleProps> = ({
@@ -14,6 +15,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 	timeDifference,
 	isSameSource,
 	source,
+	isInAppropriate,
 }) => {
 	const marginTop =
 		isSameSource && timeDifference <= 20000
@@ -34,6 +36,17 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 			>
 				{text}
 			</div>
+		);
+	}
+
+	if (isInAppropriate) {
+		return (
+			<>
+				<div className={styles.chatBubbleInAppropriate}>{text}</div>
+				<div className={styles.inappropriate}>
+					The above message was not sent as it's inappropriate.
+				</div>
+			</>
 		);
 	}
 
