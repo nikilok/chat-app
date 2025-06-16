@@ -15,7 +15,7 @@
 	border: 2px dashed #be4242;
 	border-radius: 10px;
 	border-bottom-right-radius: 2px;
-	margin: 20px;
+	margin: 0 20px 0 20px;
 	padding: 10px;
 	align-self: flex-end;
 	transition: margin-top 0.2s ease;
@@ -51,6 +51,13 @@
 .inappropriate {
 	font-size: 0.8em;
 	width: clamp(200px, 80%, 400px);
+	align-self: flex-end;
+	margin: 5px 20px 10px 20px;
+}
+
+.inappropriateContainer {
+	display: flex;
+	flex-direction: column;
 	align-self: flex-end;
 }
 
