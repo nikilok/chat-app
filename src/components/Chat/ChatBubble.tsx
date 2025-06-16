@@ -41,12 +41,12 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 
 	if (isInAppropriate) {
 		return (
-			<>
+			<div className={styles.inappropriateContainer} style={{ marginTop }}>
 				<div className={styles.chatBubbleInAppropriate}>{text}</div>
 				<div className={styles.inappropriate}>
 					The above message was not sent as it's inappropriate.
 				</div>
-			</>
+			</div>
 		);
 	}
 

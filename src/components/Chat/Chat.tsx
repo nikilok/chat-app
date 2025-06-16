@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
 import SendIcon from "../../assets/send.svg";
@@ -28,13 +29,6 @@ export default function Chat() {
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
-	const scrollToBottom = () => {
-		if (chatContainerRef.current) {
-			chatContainerRef.current.scrollTop =
-				chatContainerRef.current.scrollHeight;
-		}
-	};
-
 	const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
 		const groupedMessages: GroupedMessage[] = [];
 		let lastMessageTime = 0;
@@ -61,6 +55,49 @@ export default function Chat() {
 		return groupedMessages;
 	};
 
+	const groupedMessages = groupMessages(messages);
+
+	const rowVirtualizer = useVirtualizer({
+		count: groupedMessages.length,
+		getScrollElement: () => chatContainerRef.current,
+		estimateSize: (index) => {
+			const message = groupedMessages[index];
+			if ("type" in message && message.type === "timestamp") {
+				return 40;
+			}
+			const messageText = "text" in message ? message.text : "";
+			const baseHeight = 60;
+			const estimatedTextLines = Math.ceil(messageText.length / 40);
+			return Math.max(baseHeight, baseHeight + (estimatedTextLines - 1) * 20);
+		},
+		overscan: 5,
+	});
+
+	const scrollToBottom = useCallback(() => {
+		if (chatContainerRef.current && groupedMessages.length > 0) {
+			rowVirtualizer.scrollToIndex(groupedMessages.length - 1, {
+				align: "end",
+				behavior: "smooth",
+			});
+
+			// This timeout is necessary to scroll to the end after rendering
+			setTimeout(() => {
+				if (chatContainerRef.current) {
+					chatContainerRef.current.scrollTo({
+						top: chatContainerRef.current.scrollHeight,
+						behavior: "smooth",
+					});
+				}
+			}, 50);
+		}
+	}, [rowVirtualizer, groupedMessages.length]);
+
+	useEffect(() => {
+		if (groupedMessages.length > 0) {
+			scrollToBottom();
+		}
+	}, [groupedMessages.length, scrollToBottom]);
+
 	const submitMessage = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const target = e.target as HTMLFormElement & {
@@ -82,49 +119,93 @@ export default function Chat() {
 				},
 			]);
 			(e.target as HTMLFormElement).reset();
-			setTimeout(() => scrollToBottom(), 0);
 		}
 	};
 
-	const groupedMessages = groupMessages(messages);
-
 	return (
 		<main style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-			{/* Chat Container */}
+			{/* Virtual Chat Container */}
 			<div ref={chatContainerRef} className={styles.chatContainer}>
 				<div style={{ flex: 1 }} />
-				{groupedMessages.map((m, index) => {
-					if ("type" in m && m.type === "timestamp") {
-						return (
-							<div key={`timestamp-${m.value}`} className={styles.timestamp}>
-								{m.value}
-							</div>
-						);
-					}
-					if ("source" in m && (m.source === "you" || m.source === "other")) {
-						const isSameSource =
-							index > 0 &&
-							"source" in groupedMessages[index - 1] &&
-							(groupedMessages[index - 1] as ChatMessage).source === m.source;
-						const timeDifference =
-							index > 0
-								? Number.parseInt(m.timeStamp) -
-									Number.parseInt(
-										(groupedMessages[index - 1] as ChatMessage).timeStamp,
-									)
-								: Number.MAX_SAFE_INTEGER;
-						return (
-							<ChatBubble
-								key={`${m.source}-${m.timeStamp}`}
-								text={m.text}
-								timeDifference={timeDifference}
-								isSameSource={isSameSource}
-								source={m.source}
-								isInAppropriate={m.isMessageInAppropriate}
-							/>
-						);
-					}
-				})}
+				<div
+					style={{
+						height: `${rowVirtualizer.getTotalSize()}px`,
+						width: "100%",
+						position: "relative",
+					}}
+				>
+					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
+						const message = groupedMessages[virtualItem.index];
+
+						// Render timestamp
+						if ("type" in message && message.type === "timestamp") {
+							return (
+								<div
+									key={virtualItem.key}
+									data-index={virtualItem.index}
+									ref={rowVirtualizer.measureElement}
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										width: "100%",
+										transform: `translateY(${virtualItem.start}px)`,
+									}}
+								>
+									<div className={styles.timestamp}>{message.value}</div>
+								</div>
+							);
+						}
+
+						// Render chat bubble
+						if (
+							"source" in message &&
+							(message.source === "you" || message.source === "other")
+						) {
+							const currentIndex = virtualItem.index;
+							const previousMessage =
+								currentIndex > 0 ? groupedMessages[currentIndex - 1] : null;
+
+							const isSameSource =
+								previousMessage &&
+								"source" in previousMessage &&
+								previousMessage.source === message.source;
+
+							const timeDifference =
+								previousMessage && "timeStamp" in previousMessage
+									? Number.parseInt(message.timeStamp) -
+										Number.parseInt(previousMessage.timeStamp)
+									: Number.MAX_SAFE_INTEGER;
+
+							return (
+								<div
+									key={virtualItem.key}
+									data-index={virtualItem.index}
+									ref={rowVirtualizer.measureElement}
+									style={{
+										position: "absolute",
+										top: 0,
+										left: 0,
+										width: "100%",
+										transform: `translateY(${virtualItem.start}px)`,
+										display: "flex",
+										flexDirection: "column",
+									}}
+								>
+									<ChatBubble
+										text={message.text}
+										timeDifference={timeDifference}
+										isSameSource={!!isSameSource}
+										source={message.source}
+										isInAppropriate={message.isMessageInAppropriate}
+									/>
+								</div>
+							);
+						}
+
+						return null;
+					})}
+				</div>
 			</div>
 			{/* Chat toolbar */}
 			<div className={styles.chatToolbar}>
