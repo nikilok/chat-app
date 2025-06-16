@@ -117,12 +117,9 @@ export default function Chat() {
 		const message = target.elements.messageInput.value;
 
 		if (message.trim()) {
-			let isMessageInAppropriate = false;
-
-			if (isAiFilteringEnabled) {
-				isMessageInAppropriate = await isInAppropriate(message);
-			}
-
+			const isMessageInAppropriate = isAiFilteringEnabled
+				? await isInAppropriate(message)
+				: false;
 			setMessages((s) => [
 				...s,
 				{
