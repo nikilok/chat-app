@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
+import ExperimentalAiFilter from "./ExperimentalAiFilter";
 import SendIcon from "../../assets/send.svg";
 import ClockIcon from "../../assets/clock.svg";
 import { useIsInAppropriate } from "./utils/useIsInAppropriate";
@@ -51,6 +52,7 @@ export default function Chat() {
 		},
 		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
 	]);
+	const [isAiFilteringEnabled, setIsAiFilteringEnabled] = useState(false);
 	const { isLoading, isInAppropriate } = useIsInAppropriate();
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -115,7 +117,12 @@ export default function Chat() {
 		const message = target.elements.messageInput.value;
 
 		if (message.trim()) {
-			const isMessageInAppropriate = await isInAppropriate(message);
+			let isMessageInAppropriate = false;
+
+			if (isAiFilteringEnabled) {
+				isMessageInAppropriate = await isInAppropriate(message);
+			}
+
 			setMessages((s) => [
 				...s,
 				{
@@ -134,6 +141,11 @@ export default function Chat() {
 			{/* Virtual Chat Container */}
 			<div ref={chatContainerRef} className={styles.chatContainer}>
 				<div style={{ flex: 1 }} />
+
+				<ExperimentalAiFilter
+					isEnabled={isAiFilteringEnabled}
+					onToggle={setIsAiFilteringEnabled}
+				/>
 				<div
 					style={{
 						height: `${rowVirtualizer.getTotalSize()}px`,
