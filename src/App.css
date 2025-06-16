@@ -56,3 +56,20 @@ h6 {
 	height: 100vh;
 	isolation: isolate;
 }
+
+@supports (height: 100dvh) {
+	#root {
+		height: 100dvh;
+	}
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 768px) {
+	#root {
+		/* 
+		Fallback for browsers without dvh support 
+		This helps with mobile browser address bars 
+		*/
+		height: -webkit-fill-available;
+	}
+}

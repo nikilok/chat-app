@@ -117,9 +117,11 @@ export default function Chat() {
 		const message = target.elements.messageInput.value;
 
 		if (message.trim()) {
-			const isMessageInAppropriate = isAiFilteringEnabled
-				? await isInAppropriate(message)
-				: false;
+			let isMessageInAppropriate = false;
+
+			if (isAiFilteringEnabled) {
+				isMessageInAppropriate = await isInAppropriate(message);
+			}
 			setMessages((s) => [
 				...s,
 				{
@@ -134,20 +136,20 @@ export default function Chat() {
 	};
 
 	return (
-		<main style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
-			{/* Virtual Chat Container */}
+		<main className={styles.chatMain}>
 			<div ref={chatContainerRef} className={styles.chatContainer}>
-				<div style={{ flex: 1 }} />
-
-				<ExperimentalAiFilter
-					isEnabled={isAiFilteringEnabled}
-					onToggle={setIsAiFilteringEnabled}
-				/>
+				{/* Filler div so the app starts with content near the bottom. */}
+				<div style={{ flex: 1, minHeight: 0 }} />
+				<div className={styles.filterContainer}>
+					<ExperimentalAiFilter
+						isEnabled={isAiFilteringEnabled}
+						onToggle={setIsAiFilteringEnabled}
+					/>
+				</div>
 				<div
+					className={styles.virtualListContainer}
 					style={{
 						height: `${rowVirtualizer.getTotalSize()}px`,
-						width: "100%",
-						position: "relative",
 					}}
 				>
 					{rowVirtualizer.getVirtualItems().map((virtualItem) => {
@@ -160,11 +162,8 @@ export default function Chat() {
 									key={virtualItem.key}
 									data-index={virtualItem.index}
 									ref={rowVirtualizer.measureElement}
+									className={styles.virtualItem}
 									style={{
-										position: "absolute",
-										top: 0,
-										left: 0,
-										width: "100%",
 										transform: `translateY(${virtualItem.start}px)`,
 									}}
 								>
@@ -198,11 +197,8 @@ export default function Chat() {
 									key={virtualItem.key}
 									data-index={virtualItem.index}
 									ref={rowVirtualizer.measureElement}
+									className={styles.virtualItem}
 									style={{
-										position: "absolute",
-										top: 0,
-										left: 0,
-										width: "100%",
 										transform: `translateY(${virtualItem.start}px)`,
 										display: "flex",
 										flexDirection: "column",
@@ -228,7 +224,12 @@ export default function Chat() {
 				<div className={styles.chatInputContainer}>
 					<form
 						onSubmit={submitMessage}
-						style={{ display: "flex", alignItems: "center", height: "100%" }}
+						style={{
+							display: "flex",
+							alignItems: "center",
+							height: "100%",
+							width: "100%",
+						}}
 					>
 						<input
 							name="messageInput"
