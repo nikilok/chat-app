@@ -24,7 +24,7 @@ const ChatBubble: React.FC<ChatBubbleProps> = ({
 				: "5px"
 			: "20px";
 
-	const renderAsEmoji = isEmoji(text);
+	const renderAsEmoji = isEmoji(text.replaceAll(" ", ""));
 
 	if (renderAsEmoji) {
 		return (
