@@ -69,9 +69,9 @@ export default function Chat() {
 			};
 		};
 		const message = target.elements.messageInput.value;
-		const isMessageInAppropriate = await isInAppropriate(message);
 
 		if (message.trim()) {
+			const isMessageInAppropriate = await isInAppropriate(message);
 			setMessages((s) => [
 				...s,
 				{
