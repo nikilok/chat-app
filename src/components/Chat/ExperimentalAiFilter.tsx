@@ -19,6 +19,7 @@ export default function ExperimentalAiFilter({
 					checked={isEnabled}
 					icons={false}
 					onChange={(e) => onToggle(e.target.checked)}
+					aria-label="Toggle AI Language Filtering"
 				/>
 			</div>
 		</div>
