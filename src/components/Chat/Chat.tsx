@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
@@ -16,6 +16,32 @@ type ChatMessage = {
 
 type GroupedMessage = ChatMessage | { type: "timestamp"; value: string };
 
+const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
+	const groupedMessages: GroupedMessage[] = [];
+	let lastMessageTime = 0;
+
+	messages.forEach((message, index) => {
+		const currentTime = new Date(Number.parseInt(message.timeStamp));
+		if (
+			index === 0 ||
+			currentTime.getTime() - lastMessageTime > 3600000 // More than an hour
+		) {
+			groupedMessages.push({
+				type: "timestamp",
+				value: currentTime.toLocaleString("en-US", {
+					weekday: "short",
+					hour: "2-digit",
+					minute: "2-digit",
+				}),
+			});
+		}
+		groupedMessages.push(message);
+		lastMessageTime = currentTime.getTime();
+	});
+
+	return groupedMessages;
+};
+
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([
 		{
@@ -29,33 +55,7 @@ export default function Chat() {
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
-	const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
-		const groupedMessages: GroupedMessage[] = [];
-		let lastMessageTime = 0;
-
-		messages.forEach((message, index) => {
-			const currentTime = new Date(Number.parseInt(message.timeStamp));
-			if (
-				index === 0 ||
-				currentTime.getTime() - lastMessageTime > 3600000 // More than an hour
-			) {
-				groupedMessages.push({
-					type: "timestamp",
-					value: currentTime.toLocaleString("en-US", {
-						weekday: "short",
-						hour: "2-digit",
-						minute: "2-digit",
-					}),
-				});
-			}
-			groupedMessages.push(message);
-			lastMessageTime = currentTime.getTime();
-		});
-
-		return groupedMessages;
-	};
-
-	const groupedMessages = groupMessages(messages);
+	const groupedMessages = useMemo(() => groupMessages(messages), [messages]);
 
 	const rowVirtualizer = useVirtualizer({
 		count: groupedMessages.length,
@@ -75,26 +75,24 @@ export default function Chat() {
 
 	const scrollToBottom = useCallback(() => {
 		if (chatContainerRef.current && groupedMessages.length > 0) {
-			if (chatContainerRef.current) {
-				chatContainerRef.current.scrollTo({
-					top: chatContainerRef.current.scrollHeight,
-					behavior: "auto",
-				});
+			chatContainerRef.current.scrollTo({
+				top: chatContainerRef.current.scrollHeight,
+				behavior: "auto",
+			});
 
-				rowVirtualizer.scrollToIndex(groupedMessages.length - 1, {
-					align: "end",
-					behavior: "auto",
-				});
+			rowVirtualizer.scrollToIndex(groupedMessages.length - 1, {
+				align: "end",
+				behavior: "auto",
+			});
 
-				setTimeout(() => {
-					if (chatContainerRef.current) {
-						chatContainerRef.current.scrollTo({
-							top: chatContainerRef.current.scrollHeight,
-							behavior: "smooth",
-						});
-					}
-				}, 100);
-			}
+			setTimeout(() => {
+				if (chatContainerRef.current) {
+					chatContainerRef.current.scrollTo({
+						top: chatContainerRef.current.scrollHeight,
+						behavior: "smooth",
+					});
+				}
+			}, 100);
 		}
 	}, [rowVirtualizer, groupedMessages.length]);
 
