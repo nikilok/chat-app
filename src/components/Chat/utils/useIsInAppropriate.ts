@@ -1,6 +1,7 @@
 import "@tensorflow/tfjs";
 import * as toxicity from "@tensorflow-models/toxicity";
 import { useState } from "react";
+import * as emoji from "node-emoji";
 
 type Result = {
 	probabilities: Float32Array;
@@ -36,7 +37,8 @@ export function useIsInAppropriate() {
 	const isInAppropriate = async (sentence: string): Promise<boolean> => {
 		setIsLoading(true);
 		try {
-			const response = await getPredicion(sentence);
+			const emojiToText = emoji.unemojify(sentence).replaceAll(":", "");
+			const response = await getPredicion(emojiToText);
 			setIsLoading(false);
 			return response;
 		} catch (_) {

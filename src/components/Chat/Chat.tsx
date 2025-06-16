@@ -4,6 +4,7 @@ import ChatBubble from "./ChatBubble";
 import SendIcon from "../../assets/send.svg";
 import ClockIcon from "../../assets/clock.svg";
 import { useIsInAppropriate } from "./utils/useIsInAppropriate";
+import * as emoji from "node-emoji";
 
 type ChatMessage = {
 	text: string;
@@ -74,7 +75,7 @@ export default function Chat() {
 			setMessages((s) => [
 				...s,
 				{
-					text: message,
+					text: emoji.emojify(message),
 					source: "you",
 					timeStamp: Date.now().toString(),
 					isMessageInAppropriate,
