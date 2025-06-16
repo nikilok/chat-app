@@ -24,7 +24,6 @@ export default function Chat() {
 		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
 	]);
 	const { isLoading, isInAppropriate } = useIsInAppropriate();
-	console.log("🚀 ~ Chat ~ isLoading:", isLoading);
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
