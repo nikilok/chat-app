@@ -38,6 +38,8 @@ Object.defineProperty(HTMLElement.prototype, "scrollTop", {
 	writable: true,
 });
 
+HTMLElement.prototype.scrollTo = () => {};
+
 describe("Chat component", () => {
 	test("renders chat input and initial message", () => {
 		render(<Chat />);
