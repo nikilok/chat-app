@@ -75,20 +75,26 @@ export default function Chat() {
 
 	const scrollToBottom = useCallback(() => {
 		if (chatContainerRef.current && groupedMessages.length > 0) {
-			rowVirtualizer.scrollToIndex(groupedMessages.length - 1, {
-				align: "end",
-				behavior: "smooth",
-			});
+			if (chatContainerRef.current) {
+				chatContainerRef.current.scrollTo({
+					top: chatContainerRef.current.scrollHeight,
+					behavior: "auto",
+				});
 
-			// This timeout is necessary to scroll to the end after rendering
-			setTimeout(() => {
-				if (chatContainerRef.current) {
-					chatContainerRef.current.scrollTo({
-						top: chatContainerRef.current.scrollHeight,
-						behavior: "smooth",
-					});
-				}
-			}, 50);
+				rowVirtualizer.scrollToIndex(groupedMessages.length - 1, {
+					align: "end",
+					behavior: "auto",
+				});
+
+				setTimeout(() => {
+					if (chatContainerRef.current) {
+						chatContainerRef.current.scrollTo({
+							top: chatContainerRef.current.scrollHeight,
+							behavior: "smooth",
+						});
+					}
+				}, 100);
+			}
 		}
 	}, [rowVirtualizer, groupedMessages.length]);
 
