@@ -155,7 +155,7 @@ export default function Chat() {
 							) : (
 								<img
 									src={ClockIcon}
-									alt="Send Message Icon"
+									alt="Loading Icon"
 									width="30"
 									height="30"
 								/>
