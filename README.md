@@ -44,6 +44,12 @@ Animated bounce and Emoji detection to render it differently
 
 <img width="401" alt="image" src="https://github.com/user-attachments/assets/b6179398-6604-4b30-b9ca-add70cf87861" />
 
+<img width="401" alt="image" src="https://github.com/user-attachments/assets/3e17b37a-ea1c-4973-a354-27347b616a9f" />
+
+Loading state.
+
+<img width="411" alt="image" src="https://github.com/user-attachments/assets/789f4203-de86-4c46-aeb6-1b82d4bf24a5" />
+
 ## Run tests
 
 ```
