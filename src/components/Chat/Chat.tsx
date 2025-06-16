@@ -104,6 +104,9 @@ export default function Chat() {
 
 	const submitMessage = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
+		if (isLoading) {
+			return;
+		}
 		const target = e.target as HTMLFormElement & {
 			elements: HTMLFormControlsCollection & {
 				messageInput: HTMLInputElement;
