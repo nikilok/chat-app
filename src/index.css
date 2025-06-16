@@ -1,7 +1,15 @@
 /* Reset styles */
+html {
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+}
+
 body {
 	margin: 0;
-	/* height: 100vh; */
+	height: 100%;
+	min-height: 100vh;
+	min-height: -webkit-fill-available;
 	font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 	line-height: 1.5;
 	font-weight: 400;
@@ -9,6 +17,16 @@ body {
 	background-color: white;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+	position: fixed;
+	width: 100%;
+	overflow: hidden;
+}
+
+#root {
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	position: relative;
 }
 
 h1 {

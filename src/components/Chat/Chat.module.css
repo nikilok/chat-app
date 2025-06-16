@@ -2,6 +2,7 @@
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
+	height: -webkit-fill-available;
 	width: 100%;
 	position: relative;
 	overflow: hidden;
@@ -22,11 +23,12 @@
 	top: 0;
 	left: 0;
 	right: 0;
-    /* Leave space for the toolbar; */
+	/* Leave space for the toolbar; */
 	bottom: 60px;
 	width: 100%;
 	box-sizing: border-box;
 	z-index: 1;
+	padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }
 
 /* Timestamp styles */
@@ -47,9 +49,12 @@
 	bottom: 0;
 	left: 0;
 	right: 0;
+	width: 100%;
 	z-index: 10;
 	padding-bottom: env(safe-area-inset-bottom, 0px);
 	box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+	transform: translateZ(0);
+	height: calc(60px + env(safe-area-inset-bottom, 0px));
 }
 
 .chatInputContainer {
@@ -65,7 +70,6 @@
 	font-size: 1em;
 	position: relative;
 	z-index: 3;
-	margin-bottom: env(safe-area-inset-bottom, 0px); /* Respect device safe areas */
 }
 
 .chatInput {
@@ -103,10 +107,15 @@
 .virtualListContainer {
 	position: relative;
 	width: 100%;
-	overflow: visible;
-	/* will-change: contents; */
-	pointer-events: auto;
-	touch-action: auto;
+	z-index: 2;
+	pointer-events: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+	.chatContainer {
+		overscroll-behavior-y: none;
+		-webkit-overflow-scrolling: touch;
+	}
 }
 
 /* Filter container positioning */
