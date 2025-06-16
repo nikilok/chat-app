@@ -1,5 +1,6 @@
 import "@tensorflow/tfjs";
 import * as toxicity from "@tensorflow-models/toxicity";
+import { useState } from "react";
 
 type Result = {
 	probabilities: Float32Array;
@@ -19,9 +20,7 @@ const threshold: number = 0.85;
  * @param sentence string
  * @returns boolean
  */
-export default async function isInAppropriate(
-	sentence: string,
-): Promise<boolean> {
+async function getPredicion(sentence: string): Promise<boolean> {
 	const model = await toxicity.load(threshold, []);
 	const predictions: PredictionsResponse = await model.classify(sentence);
 	// console.log("🚀 ~ isInAppropriate ~ predictions:", predictions)
@@ -29,4 +28,25 @@ export default async function isInAppropriate(
 	return predictions.some((prediction) =>
 		prediction.results.some((result) => result.match),
 	);
+}
+
+export function useIsInAppropriate() {
+	const [isLoading, setIsLoading] = useState(false);
+
+	const isInAppropriate = async (sentence: string): Promise<boolean> => {
+		setIsLoading(true);
+		try {
+			const response = await getPredicion(sentence);
+			setIsLoading(false);
+			return response;
+		} catch (_) {
+			setIsLoading(false);
+			return false;
+		}
+	};
+
+	return {
+		isLoading,
+		isInAppropriate,
+	};
 }

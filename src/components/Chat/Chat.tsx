@@ -2,7 +2,8 @@ import { useState, useRef } from "react";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
 import SendIcon from "../../assets/send.svg";
-import isInAppropriate from "./utils/useIsInAppropriate";
+import ClockIcon from "../../assets/clock.svg";
+import { useIsInAppropriate } from "./utils/useIsInAppropriate";
 
 type ChatMessage = {
 	text: string;
@@ -22,6 +23,8 @@ export default function Chat() {
 		},
 		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
 	]);
+	const { isLoading, isInAppropriate } = useIsInAppropriate();
+	console.log("🚀 ~ Chat ~ isLoading:", isLoading);
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -138,13 +141,26 @@ export default function Chat() {
 							className={styles.chatInput}
 							placeholder="Type a message..."
 						/>
-						<button type="submit" aria-label="Send Message">
-							<img
-								src={SendIcon}
-								alt="Send Message Icon"
-								width="20"
-								height="20"
-							/>
+						<button
+							type="submit"
+							aria-label="Send Message"
+							className={styles.sendButton}
+						>
+							{!isLoading ? (
+								<img
+									src={SendIcon}
+									alt="Send Message Icon"
+									width="20"
+									height="20"
+								/>
+							) : (
+								<img
+									src={ClockIcon}
+									alt="Send Message Icon"
+									width="30"
+									height="30"
+								/>
+							)}
 						</button>
 					</form>
 				</div>
