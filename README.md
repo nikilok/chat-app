@@ -1,6 +1,6 @@
-# React + TypeScript + Vite + Vitest
+# React + TypeScript + Vite + Vitest + BiomeJS
 
-This template provides a minimal setup to get React working in Vite with HMR, some ESLint rules, and Vitest for testing.
+This template provides a minimal setup to get React working in Vite with HMR, BiomeJS for linting / formatting, and Vitest for testing.
 
 ## Testing
 
@@ -55,6 +55,7 @@ Loading state.
 <img width="407" alt="image" src="https://github.com/user-attachments/assets/254dfc0b-6398-4916-8166-1c15cff65466" />
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/fc171ac6-a3dc-4663-ba64-f9612d60d6bc" />
 <img width="402" alt="image" src="https://github.com/user-attachments/assets/26336c14-e18d-45be-a471-b13878573e18" />
+<img width="420" alt="image" src="https://github.com/user-attachments/assets/2e0b890e-0b94-40a3-88e5-8050c1214e3c" />
 
 ## Run tests
 
