@@ -39,7 +39,7 @@ export function useChatStorage() {
 		});
 	}, []);
 
-	const syncPendingMessages = useCallback(async (): Promise<void> => {
+	const syncPendingMessages = async (): Promise<void> => {
 		if (isSyncingRef.current || pendingMessagesRef.current.length === 0) {
 			return;
 		}
@@ -70,9 +70,9 @@ export function useChatStorage() {
 		} finally {
 			isSyncingRef.current = false;
 		}
-	}, [initDB]);
+	};
 
-	const startBackgroundSync = useCallback(() => {
+	const startBackgroundSync = () => {
 		if (syncIntervalRef.current) return;
 
 		syncIntervalRef.current = setInterval(syncPendingMessages, 2000);
@@ -95,16 +95,16 @@ export function useChatStorage() {
 			document.removeEventListener("visibilitychange", handleVisibilityChange);
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 		};
-	}, [syncPendingMessages]);
+	};
 
-	const stopBackgroundSync = useCallback(() => {
+	const stopBackgroundSync = (): void => {
 		if (syncIntervalRef.current) {
 			clearInterval(syncIntervalRef.current);
 			syncIntervalRef.current = null;
 		}
-	}, []);
+	};
 
-	const generateId = useCallback((): number => {
+	const generateId = useCallback(() => {
 		const id = nextIdRef.current;
 		nextIdRef.current += 1;
 		return id;
@@ -131,16 +131,13 @@ export function useChatStorage() {
 		[generateId],
 	);
 
-	const queueMessage = useCallback(
-		(message: ChatMessage): void => {
-			pendingMessagesRef.current.push(message);
+	const queueMessage = (message: ChatMessage): void => {
+		pendingMessagesRef.current.push(message);
 
-			if (pendingMessagesRef.current.length >= 10) {
-				syncPendingMessages();
-			}
-		},
-		[syncPendingMessages],
-	);
+		if (pendingMessagesRef.current.length >= 10) {
+			syncPendingMessages();
+		}
+	};
 
 	const loadMessages = useCallback(async (): Promise<ChatMessage[]> => {
 		setIsLoading(true);
@@ -173,7 +170,7 @@ export function useChatStorage() {
 		}
 	}, [initDB, initializeNextId]);
 
-	const clearMessages = useCallback(async (): Promise<void> => {
+	const clearMessages = async (): Promise<void> => {
 		try {
 			pendingMessagesRef.current = [];
 			nextIdRef.current = 1;
@@ -190,7 +187,7 @@ export function useChatStorage() {
 		} catch (error) {
 			console.error("Failed to clear messages:", error);
 		}
-	}, [initDB]);
+	};
 
 	const bulkAddMessages = useCallback(
 		async (messages: ChatMessage[]): Promise<void> => {
@@ -214,13 +211,13 @@ export function useChatStorage() {
 		[initDB],
 	);
 
-	const forceSync = useCallback(async (): Promise<void> => {
+	const forceSync = async (): Promise<void> => {
 		await syncPendingMessages();
-	}, [syncPendingMessages]);
+	};
 
-	const getPendingCount = useCallback((): number => {
+	const getPendingCount = (): number => {
 		return pendingMessagesRef.current.length;
-	}, []);
+	};
 
 	return {
 		isLoading,

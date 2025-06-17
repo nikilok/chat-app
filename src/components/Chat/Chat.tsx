@@ -173,7 +173,9 @@ export default function Chat() {
 	if (isLoading) {
 		return (
 			<div className={styles.loadingContainer}>
-				<img src={ClockIcon} alt="Loading Icon" width="50" height="50" />
+				<div className={styles.loadingIconWrapper}>
+					<img src={ClockIcon} alt="Loading Icon" width="50" height="50" />
+				</div>
 			</div>
 		);
 	}
