@@ -48,10 +48,10 @@ const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
-	const [nextId, setNextId] = useState(1);
 	const [isAiFilteringEnabled, setIsAiFilteringEnabled] = useState(false);
 	const { isLoading: isAiLoading, isInAppropriate } = useIsInAppropriate();
 	const {
+		createMessage,
 		queueMessage,
 		loadMessages,
 		bulkAddMessages,
@@ -76,32 +76,19 @@ export default function Chat() {
 			const savedMessages = await loadMessages();
 			if (savedMessages.length > 0) {
 				setMessages(savedMessages);
-				const maxId = Math.max(...savedMessages.map((m) => m.id));
-				setNextId(maxId + 1);
 			} else {
 				const defaultMessages = [
-					{
-						id: 1,
-						text: "hi there",
-						source: "other" as const,
-						timeStamp: (Date.now() - 1000).toString(),
-					},
-					{
-						id: 2,
-						text: "💕",
-						source: "other" as const,
-						timeStamp: Date.now().toString(),
-					},
+					createMessage("hi there", "other"),
+					createMessage("💕", "other"),
 				];
 				setMessages(defaultMessages);
-				setNextId(3);
 				await bulkAddMessages(defaultMessages);
 			}
 			setIsLoading(false);
 		};
 
 		initializeMessages();
-	}, [loadMessages, bulkAddMessages]);
+	}, [loadMessages, bulkAddMessages, createMessage]);
 
 	const groupedMessages = useMemo(() => groupMessages(messages), [messages]);
 
@@ -169,16 +156,13 @@ export default function Chat() {
 				isMessageInAppropriate = await isInAppropriate(message);
 			}
 
-			const newMessage = {
-				id: nextId,
-				text: emoji.emojify(message),
-				source: "you" as const,
-				timeStamp: Date.now().toString(),
+			const newMessage = createMessage(
+				emoji.emojify(message),
+				"you",
 				isMessageInAppropriate,
-			};
+			);
 
 			setMessages((s) => [...s, newMessage]);
-			setNextId((prev) => prev + 1);
 
 			queueMessage(newMessage);
 
