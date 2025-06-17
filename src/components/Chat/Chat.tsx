@@ -47,10 +47,10 @@ const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
 
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
-	const [isLoading, setIsLoading] = useState(true);
 	const [isAiFilteringEnabled, setIsAiFilteringEnabled] = useState(false);
 	const { isLoading: isAiLoading, isInAppropriate } = useIsInAppropriate();
 	const {
+		isLoading,
 		createMessage,
 		queueMessage,
 		loadMessages,
@@ -70,13 +70,14 @@ export default function Chat() {
 		};
 	}, [startBackgroundSync, stopBackgroundSync]);
 
-	// Load messages on component mount
+	// Load saved messages from indexedDB on component mount
 	useEffect(() => {
 		const initializeMessages = async () => {
 			const savedMessages = await loadMessages();
 			if (savedMessages.length > 0) {
 				setMessages(savedMessages);
 			} else {
+				// TODO: This is only for demonstration, and must be cleared later.
 				const defaultMessages = [
 					createMessage("hi there", "other"),
 					createMessage("💕", "other"),
@@ -84,7 +85,6 @@ export default function Chat() {
 				setMessages(defaultMessages);
 				await bulkAddMessages(defaultMessages);
 			}
-			setIsLoading(false);
 		};
 
 		initializeMessages();
@@ -170,25 +170,13 @@ export default function Chat() {
 		}
 	};
 
-	// Show loading state while initializing
-	// if (isLoading) {
-	// 	return (
-	// 		<main className={styles.chatMain}>
-	// 			<div className={styles.chatContainer}>
-	// 				<div
-	// 					style={{
-	// 						display: "flex",
-	// 						justifyContent: "center",
-	// 						alignItems: "center",
-	// 						height: "100%",
-	// 					}}
-	// 				>
-	// 					Loading chat...
-	// 				</div>
-	// 			</div>
-	// 		</main>
-	// 	);
-	// }
+	if (isLoading) {
+		return (
+			<div className={styles.loadingContainer}>
+				<img src={ClockIcon} alt="Loading Icon" width="50" height="50" />
+			</div>
+		);
+	}
 
 	return (
 		<main className={styles.chatMain}>
