@@ -5,10 +5,12 @@ import ChatBubble from "./ChatBubble";
 import ExperimentalAiFilter from "./ExperimentalAiFilter";
 import SendIcon from "../../assets/send.svg";
 import ClockIcon from "../../assets/clock.svg";
-import { useIsInAppropriate } from "./utils/useIsInAppropriate";
+import { useIsInAppropriate } from "../../hooks/useIsInAppropriate";
+import { useChatStorage } from "../../hooks/useChatStorage";
 import * as emoji from "node-emoji";
 
 type ChatMessage = {
+	id: number;
 	text: string;
 	source: "you" | "other";
 	timeStamp: string;
@@ -44,18 +46,62 @@ const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
 };
 
 export default function Chat() {
-	const [messages, setMessages] = useState<ChatMessage[]>([
-		{
-			text: "hi there",
-			source: "other",
-			timeStamp: (Date.now() - 1000).toString(),
-		},
-		{ text: "💕", source: "other", timeStamp: Date.now().toString() },
-	]);
+	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [isLoading, setIsLoading] = useState(true);
+	const [nextId, setNextId] = useState(1);
 	const [isAiFilteringEnabled, setIsAiFilteringEnabled] = useState(false);
-	const { isLoading, isInAppropriate } = useIsInAppropriate();
+	const { isLoading: isAiLoading, isInAppropriate } = useIsInAppropriate();
+	const {
+		queueMessage,
+		loadMessages,
+		bulkAddMessages,
+		startBackgroundSync,
+		stopBackgroundSync,
+	} = useChatStorage();
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
+
+	// Start background sync
+	useEffect(() => {
+		const cleanup = startBackgroundSync();
+		return () => {
+			stopBackgroundSync();
+			cleanup?.();
+		};
+	}, [startBackgroundSync, stopBackgroundSync]);
+
+	// Load messages on component mount
+	useEffect(() => {
+		const initializeMessages = async () => {
+			const savedMessages = await loadMessages();
+			if (savedMessages.length > 0) {
+				setMessages(savedMessages);
+				const maxId = Math.max(...savedMessages.map((m) => m.id));
+				setNextId(maxId + 1);
+			} else {
+				const defaultMessages = [
+					{
+						id: 1,
+						text: "hi there",
+						source: "other" as const,
+						timeStamp: (Date.now() - 1000).toString(),
+					},
+					{
+						id: 2,
+						text: "💕",
+						source: "other" as const,
+						timeStamp: Date.now().toString(),
+					},
+				];
+				setMessages(defaultMessages);
+				setNextId(3);
+				await bulkAddMessages(defaultMessages);
+			}
+			setIsLoading(false);
+		};
+
+		initializeMessages();
+	}, [loadMessages, bulkAddMessages]);
 
 	const groupedMessages = useMemo(() => groupMessages(messages), [messages]);
 
@@ -106,7 +152,7 @@ export default function Chat() {
 
 	const submitMessage = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		if (isLoading) {
+		if (isAiLoading) {
 			return;
 		}
 		const target = e.target as HTMLFormElement & {
@@ -122,18 +168,43 @@ export default function Chat() {
 			if (isAiFilteringEnabled) {
 				isMessageInAppropriate = await isInAppropriate(message);
 			}
-			setMessages((s) => [
-				...s,
-				{
-					text: emoji.emojify(message),
-					source: "you",
-					timeStamp: Date.now().toString(),
-					isMessageInAppropriate,
-				},
-			]);
+
+			const newMessage = {
+				id: nextId,
+				text: emoji.emojify(message),
+				source: "you" as const,
+				timeStamp: Date.now().toString(),
+				isMessageInAppropriate,
+			};
+
+			setMessages((s) => [...s, newMessage]);
+			setNextId((prev) => prev + 1);
+
+			queueMessage(newMessage);
+
 			(e.target as HTMLFormElement).reset();
 		}
 	};
+
+	// Show loading state while initializing
+	// if (isLoading) {
+	// 	return (
+	// 		<main className={styles.chatMain}>
+	// 			<div className={styles.chatContainer}>
+	// 				<div
+	// 					style={{
+	// 						display: "flex",
+	// 						justifyContent: "center",
+	// 						alignItems: "center",
+	// 						height: "100%",
+	// 					}}
+	// 				>
+	// 					Loading chat...
+	// 				</div>
+	// 			</div>
+	// 		</main>
+	// 	);
+	// }
 
 	return (
 		<main className={styles.chatMain}>
@@ -244,7 +315,7 @@ export default function Chat() {
 							aria-label="Send Message"
 							className={styles.sendButton}
 						>
-							{!isLoading ? (
+							{!isAiLoading ? (
 								<img
 									src={SendIcon}
 									alt="Send Message Icon"
