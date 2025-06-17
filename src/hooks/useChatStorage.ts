@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from "react";
 
 const DB_NAME = import.meta.env.VITE_DB_NAME || "ChatAppDB";
-const DB_VERSION = Number.parseInt(import.meta.env.VITE_DB_VERSION || "1", 10);
+const DB_VERSION = Number.parseInt(import.meta.env.VITE_DB_VERSION || "1");
 const STORE_NAME = import.meta.env.VITE_STORE_NAME || "messages";
 
 type ChatMessage = {
