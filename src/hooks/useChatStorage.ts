@@ -1,5 +1,9 @@
 import { useCallback, useRef, useState } from "react";
 
+const DB_NAME = import.meta.env.VITE_DB_NAME || "ChatAppDB";
+const DB_VERSION = Number.parseInt(import.meta.env.VITE_DB_VERSION || "1", 10);
+const STORE_NAME = import.meta.env.VITE_STORE_NAME || "messages";
+
 type ChatMessage = {
 	id: number;
 	text: string;
@@ -8,9 +12,35 @@ type ChatMessage = {
 	isMessageInAppropriate?: boolean;
 };
 
-const DB_NAME = "ChatAppDB";
-const DB_VERSION = 1;
-const STORE_NAME = "messages";
+// Compressed version for storage - uses short property names and numeric values to save space
+type CompressedChatMessage = {
+	i: number; // id
+	t: string; // text
+	s: 0 | 1; // source: 0="you", 1="other"
+	ts: string; // timeStamp
+	ia?: 0 | 1; // isMessageInAppropriate: 0=false, 1=true
+};
+
+// Compression/decompression utilities
+const compressMessage = (message: ChatMessage): CompressedChatMessage => ({
+	i: message.id,
+	t: message.text,
+	s: message.source === "you" ? 0 : 1,
+	ts: message.timeStamp,
+	...(message.isMessageInAppropriate !== undefined && {
+		ia: message.isMessageInAppropriate ? 1 : 0,
+	}),
+});
+
+const decompressMessage = (compressed: CompressedChatMessage): ChatMessage => ({
+	id: compressed.i,
+	text: compressed.t,
+	source: compressed.s === 0 ? "you" : "other",
+	timeStamp: compressed.ts,
+	...(compressed.ia !== undefined && {
+		isMessageInAppropriate: compressed.ia === 1,
+	}),
+});
 
 export function useChatStorage() {
 	const pendingMessagesRef = useRef<ChatMessage[]>([]);
@@ -31,9 +61,9 @@ export function useChatStorage() {
 				const db = (event.target as IDBOpenDBRequest).result;
 				if (!db.objectStoreNames.contains(STORE_NAME)) {
 					const store = db.createObjectStore(STORE_NAME, {
-						keyPath: "id",
+						keyPath: "i",
 					});
-					store.createIndex("timeStamp", "timeStamp", { unique: false });
+					store.createIndex("ts", "ts", { unique: false });
 				}
 			};
 		});
@@ -53,7 +83,7 @@ export function useChatStorage() {
 			const store = transaction.objectStore(STORE_NAME);
 
 			for (const message of messagesToSync) {
-				store.put(message);
+				store.put(compressMessage(message));
 			}
 
 			await new Promise((resolve, reject) => {
@@ -61,7 +91,7 @@ export function useChatStorage() {
 					pendingMessagesRef.current = pendingMessagesRef.current.slice(
 						messagesToSync.length,
 					);
-					resolve(void 0);
+					resolve(undefined);
 				};
 				transaction.onerror = () => reject(transaction.error);
 			});
@@ -146,12 +176,13 @@ export function useChatStorage() {
 			const db = await initDB();
 			const transaction = db.transaction([STORE_NAME], "readonly");
 			const store = transaction.objectStore(STORE_NAME);
-			const index = store.index("timeStamp");
+			const index = store.index("ts");
 
 			return new Promise((resolve, reject) => {
 				const request = index.getAll();
 				request.onsuccess = () => {
-					const messages = request.result;
+					const compressedMessages = request.result as CompressedChatMessage[];
+					const messages = compressedMessages.map(decompressMessage);
 
 					if (messages.length > 0) {
 						const maxId = Math.max(...messages.map((m) => m.id));
@@ -181,7 +212,7 @@ export function useChatStorage() {
 
 			await new Promise((resolve, reject) => {
 				const request = store.clear();
-				request.onsuccess = () => resolve(void 0);
+				request.onsuccess = () => resolve(undefined);
 				request.onerror = () => reject(request.error);
 			});
 		} catch (error) {
@@ -197,11 +228,11 @@ export function useChatStorage() {
 				const store = transaction.objectStore(STORE_NAME);
 
 				for (const message of messages) {
-					store.put(message);
+					store.put(compressMessage(message));
 				}
 
 				await new Promise((resolve, reject) => {
-					transaction.oncomplete = () => resolve(void 0);
+					transaction.oncomplete = () => resolve(undefined);
 					transaction.onerror = () => reject(transaction.error);
 				});
 			} catch (error) {
