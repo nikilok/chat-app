@@ -1,11 +1,11 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 
 type ChatMessage = {
-    id: number;
-    text: string;
-    source: "you" | "other";
-    timeStamp: string;
-    isMessageInAppropriate?: boolean;
+	id: number;
+	text: string;
+	source: "you" | "other";
+	timeStamp: string;
+	isMessageInAppropriate?: boolean;
 };
 
 const DB_NAME = "ChatAppDB";
@@ -13,212 +13,225 @@ const DB_VERSION = 1;
 const STORE_NAME = "messages";
 
 export function useChatStorage() {
-    const pendingMessagesRef = useRef<ChatMessage[]>([]);
-    const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-    const isSyncingRef = useRef(false);
-    const nextIdRef = useRef(1);
+	const pendingMessagesRef = useRef<ChatMessage[]>([]);
+	const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+	const isSyncingRef = useRef(false);
+	const nextIdRef = useRef(1);
 
-    const initDB = useCallback((): Promise<IDBDatabase> => {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
+	const [isLoading, setIsLoading] = useState(false);
 
-            request.onerror = () => reject(request.error);
-            request.onsuccess = () => resolve(request.result);
+	const initDB = useCallback((): Promise<IDBDatabase> => {
+		return new Promise((resolve, reject) => {
+			const request = indexedDB.open(DB_NAME, DB_VERSION);
 
-            request.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
-                if (!db.objectStoreNames.contains(STORE_NAME)) {
-                    const store = db.createObjectStore(STORE_NAME, {
-                        keyPath: "id",
-                    });
-                    store.createIndex("timeStamp", "timeStamp", { unique: false });
-                }
-            };
-        });
-    }, []);
+			request.onerror = () => reject(request.error);
+			request.onsuccess = () => resolve(request.result);
 
-    const syncPendingMessages = useCallback(async (): Promise<void> => {
-        if (isSyncingRef.current || pendingMessagesRef.current.length === 0) {
-            return;
-        }
+			request.onupgradeneeded = (event) => {
+				const db = (event.target as IDBOpenDBRequest).result;
+				if (!db.objectStoreNames.contains(STORE_NAME)) {
+					const store = db.createObjectStore(STORE_NAME, {
+						keyPath: "id",
+					});
+					store.createIndex("timeStamp", "timeStamp", { unique: false });
+				}
+			};
+		});
+	}, []);
 
-        isSyncingRef.current = true;
-        const messagesToSync = [...pendingMessagesRef.current];
+	const syncPendingMessages = useCallback(async (): Promise<void> => {
+		if (isSyncingRef.current || pendingMessagesRef.current.length === 0) {
+			return;
+		}
 
-        try {
-            const db = await initDB();
-            const transaction = db.transaction([STORE_NAME], "readwrite");
-            const store = transaction.objectStore(STORE_NAME);
+		isSyncingRef.current = true;
+		const messagesToSync = [...pendingMessagesRef.current];
 
-            for (const message of messagesToSync) {
-                store.put(message);
-            }
+		try {
+			const db = await initDB();
+			const transaction = db.transaction([STORE_NAME], "readwrite");
+			const store = transaction.objectStore(STORE_NAME);
 
-            await new Promise((resolve, reject) => {
-                transaction.oncomplete = () => {
-                    pendingMessagesRef.current = pendingMessagesRef.current.slice(
-                        messagesToSync.length,
-                    );
-                    resolve(void 0);
-                };
-                transaction.onerror = () => reject(transaction.error);
-            });
-        } catch (error) {
-            console.error("Failed to sync messages:", error);
-        } finally {
-            isSyncingRef.current = false;
-        }
-    }, [initDB]);
+			for (const message of messagesToSync) {
+				store.put(message);
+			}
 
-    const startBackgroundSync = useCallback(() => {
-        if (syncIntervalRef.current) return;
+			await new Promise((resolve, reject) => {
+				transaction.oncomplete = () => {
+					pendingMessagesRef.current = pendingMessagesRef.current.slice(
+						messagesToSync.length,
+					);
+					resolve(void 0);
+				};
+				transaction.onerror = () => reject(transaction.error);
+			});
+		} catch (error) {
+			console.error("Failed to sync messages:", error);
+		} finally {
+			isSyncingRef.current = false;
+		}
+	}, [initDB]);
 
-        syncIntervalRef.current = setInterval(syncPendingMessages, 2000);
+	const startBackgroundSync = useCallback(() => {
+		if (syncIntervalRef.current) return;
 
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                syncPendingMessages();
-            }
-        };
-        document.addEventListener("visibilitychange", handleVisibilityChange);
+		syncIntervalRef.current = setInterval(syncPendingMessages, 2000);
 
-        const handleBeforeUnload = () => {
-            if (pendingMessagesRef.current.length > 0) {
-                syncPendingMessages();
-            }
-        };
-        window.addEventListener("beforeunload", handleBeforeUnload);
+		const handleVisibilityChange = () => {
+			if (!document.hidden) {
+				syncPendingMessages();
+			}
+		};
+		document.addEventListener("visibilitychange", handleVisibilityChange);
 
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibilityChange);
-            window.removeEventListener("beforeunload", handleBeforeUnload);
-        };
-    }, [syncPendingMessages]);
+		const handleBeforeUnload = () => {
+			if (pendingMessagesRef.current.length > 0) {
+				syncPendingMessages();
+			}
+		};
+		window.addEventListener("beforeunload", handleBeforeUnload);
 
-    const stopBackgroundSync = useCallback(() => {
-        if (syncIntervalRef.current) {
-            clearInterval(syncIntervalRef.current);
-            syncIntervalRef.current = null;
-        }
-    }, []);
+		return () => {
+			document.removeEventListener("visibilitychange", handleVisibilityChange);
+			window.removeEventListener("beforeunload", handleBeforeUnload);
+		};
+	}, [syncPendingMessages]);
 
-    const generateId = useCallback((): number => {
-        const id = nextIdRef.current;
-        nextIdRef.current += 1;
-        return id;
-    }, []);
+	const stopBackgroundSync = useCallback(() => {
+		if (syncIntervalRef.current) {
+			clearInterval(syncIntervalRef.current);
+			syncIntervalRef.current = null;
+		}
+	}, []);
 
-    const initializeNextId = useCallback((maxId: number): void => {
-        nextIdRef.current = maxId + 1;
-    }, []);
+	const generateId = useCallback((): number => {
+		const id = nextIdRef.current;
+		nextIdRef.current += 1;
+		return id;
+	}, []);
 
-    const createMessage = useCallback((
-        text: string,
-        source: "you" | "other",
-        isMessageInAppropriate?: boolean
-    ): ChatMessage => {
-        return {
-            id: generateId(),
-            text,
-            source,
-            timeStamp: Date.now().toString(),
-            isMessageInAppropriate
-        };
-    }, [generateId]);
+	const initializeNextId = useCallback((maxId: number): void => {
+		nextIdRef.current = maxId + 1;
+	}, []);
 
-    const queueMessage = useCallback((message: ChatMessage): void => {
-        pendingMessagesRef.current.push(message);
+	const createMessage = useCallback(
+		(
+			text: string,
+			source: "you" | "other",
+			isMessageInAppropriate?: boolean,
+		): ChatMessage => {
+			return {
+				id: generateId(),
+				text,
+				source,
+				timeStamp: Date.now().toString(),
+				isMessageInAppropriate,
+			};
+		},
+		[generateId],
+	);
 
-        if (pendingMessagesRef.current.length >= 10) {
-            syncPendingMessages();
-        }
-    }, [syncPendingMessages]);
+	const queueMessage = useCallback(
+		(message: ChatMessage): void => {
+			pendingMessagesRef.current.push(message);
 
-    const loadMessages = useCallback(async (): Promise<ChatMessage[]> => {
-        try {
-            const db = await initDB();
-            const transaction = db.transaction([STORE_NAME], "readonly");
-            const store = transaction.objectStore(STORE_NAME);
-            const index = store.index("timeStamp");
+			if (pendingMessagesRef.current.length >= 10) {
+				syncPendingMessages();
+			}
+		},
+		[syncPendingMessages],
+	);
 
-            return new Promise((resolve, reject) => {
-                const request = index.getAll();
-                request.onsuccess = () => {
-                    const messages = request.result;
+	const loadMessages = useCallback(async (): Promise<ChatMessage[]> => {
+		setIsLoading(true);
 
-                    if (messages.length > 0) {
-                        const maxId = Math.max(...messages.map(m => m.id));
-                        initializeNextId(maxId);
-                    }
+		try {
+			const db = await initDB();
+			const transaction = db.transaction([STORE_NAME], "readonly");
+			const store = transaction.objectStore(STORE_NAME);
+			const index = store.index("timeStamp");
 
-                    resolve(messages);
-                };
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.error("Failed to load messages:", error);
-            return [];
-        }
-    }, [initDB, initializeNextId]);
+			return new Promise((resolve, reject) => {
+				const request = index.getAll();
+				request.onsuccess = () => {
+					const messages = request.result;
 
-    const clearMessages = useCallback(async (): Promise<void> => {
-        try {
-            pendingMessagesRef.current = [];
-            nextIdRef.current = 1;
+					if (messages.length > 0) {
+						const maxId = Math.max(...messages.map((m) => m.id));
+						initializeNextId(maxId);
+					}
 
-            const db = await initDB();
-            const transaction = db.transaction([STORE_NAME], "readwrite");
-            const store = transaction.objectStore(STORE_NAME);
+					resolve(messages);
+				};
+				request.onerror = () => reject(request.error);
+			});
+		} catch (error) {
+			console.error("Failed to load messages:", error);
+			return [];
+		} finally {
+			setIsLoading(false);
+		}
+	}, [initDB, initializeNextId]);
 
-            await new Promise((resolve, reject) => {
-                const request = store.clear();
-                request.onsuccess = () => resolve(void 0);
-                request.onerror = () => reject(request.error);
-            });
-        } catch (error) {
-            console.error("Failed to clear messages:", error);
-        }
-    }, [initDB]);
+	const clearMessages = useCallback(async (): Promise<void> => {
+		try {
+			pendingMessagesRef.current = [];
+			nextIdRef.current = 1;
 
-    const bulkAddMessages = useCallback(
-        async (messages: ChatMessage[]): Promise<void> => {
-            try {
-                const db = await initDB();
-                const transaction = db.transaction([STORE_NAME], "readwrite");
-                const store = transaction.objectStore(STORE_NAME);
+			const db = await initDB();
+			const transaction = db.transaction([STORE_NAME], "readwrite");
+			const store = transaction.objectStore(STORE_NAME);
 
-                for (const message of messages) {
-                    store.put(message);
-                }
+			await new Promise((resolve, reject) => {
+				const request = store.clear();
+				request.onsuccess = () => resolve(void 0);
+				request.onerror = () => reject(request.error);
+			});
+		} catch (error) {
+			console.error("Failed to clear messages:", error);
+		}
+	}, [initDB]);
 
-                await new Promise((resolve, reject) => {
-                    transaction.oncomplete = () => resolve(void 0);
-                    transaction.onerror = () => reject(transaction.error);
-                });
-            } catch (error) {
-                console.error("Failed to bulk add messages:", error);
-            }
-        },
-        [initDB],
-    );
+	const bulkAddMessages = useCallback(
+		async (messages: ChatMessage[]): Promise<void> => {
+			try {
+				const db = await initDB();
+				const transaction = db.transaction([STORE_NAME], "readwrite");
+				const store = transaction.objectStore(STORE_NAME);
 
-    const forceSync = useCallback(async (): Promise<void> => {
-        await syncPendingMessages();
-    }, [syncPendingMessages]);
+				for (const message of messages) {
+					store.put(message);
+				}
 
-    const getPendingCount = useCallback((): number => {
-        return pendingMessagesRef.current.length;
-    }, []);
+				await new Promise((resolve, reject) => {
+					transaction.oncomplete = () => resolve(void 0);
+					transaction.onerror = () => reject(transaction.error);
+				});
+			} catch (error) {
+				console.error("Failed to bulk add messages:", error);
+			}
+		},
+		[initDB],
+	);
 
-    return {
-        createMessage,
-        queueMessage,
-        loadMessages,
-        clearMessages,
-        bulkAddMessages,
-        startBackgroundSync,
-        stopBackgroundSync,
-        forceSync,
-        getPendingCount
-    };
+	const forceSync = useCallback(async (): Promise<void> => {
+		await syncPendingMessages();
+	}, [syncPendingMessages]);
+
+	const getPendingCount = useCallback((): number => {
+		return pendingMessagesRef.current.length;
+	}, []);
+
+	return {
+		isLoading,
+		createMessage,
+		queueMessage,
+		loadMessages,
+		clearMessages,
+		bulkAddMessages,
+		startBackgroundSync,
+		stopBackgroundSync,
+		forceSync,
+		getPendingCount,
+	};
 }
