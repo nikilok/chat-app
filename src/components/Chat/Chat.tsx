@@ -70,25 +70,30 @@ export default function Chat() {
 		};
 	}, [startBackgroundSync, stopBackgroundSync]);
 
-	// Load saved messages from indexedDB on component mount
+	// Load saved messages from Indexed DB on start
+	// biome-ignore lint/correctness/useExhaustiveDependencies: <loadMessages, createMessage, bulkAddMessages are memoized functions from the hook >
 	useEffect(() => {
 		const initializeMessages = async () => {
-			const savedMessages = await loadMessages();
-			if (savedMessages.length > 0) {
-				setMessages(savedMessages);
-			} else {
-				// TODO: This is only for demonstration, and must be cleared later.
-				const defaultMessages = [
-					createMessage("hi there", "other"),
-					createMessage("💕", "other"),
-				];
-				setMessages(defaultMessages);
-				await bulkAddMessages(defaultMessages);
+			try {
+				const savedMessages = await loadMessages();
+				if (savedMessages.length > 0) {
+					setMessages(savedMessages);
+				} else {
+					// TODO: This is only for demonstration, and must be cleared later.
+					const defaultMessages = [
+						createMessage("hi there", "other"),
+						createMessage("💕", "other"),
+					];
+					setMessages(defaultMessages);
+					await bulkAddMessages(defaultMessages);
+				}
+			} catch (error) {
+				console.error("Failed to initialize messages:", error);
 			}
 		};
 
 		initializeMessages();
-	}, [loadMessages, bulkAddMessages, createMessage]);
+	}, []);
 
 	const groupedMessages = useMemo(() => groupMessages(messages), [messages]);
 
@@ -174,7 +179,7 @@ export default function Chat() {
 		return (
 			<div className={styles.loadingContainer}>
 				<div className={styles.loadingIconWrapper}>
-					<img src={ClockIcon} alt="Loading Icon" width="50" height="50" />
+					<img src={ClockIcon} alt="Loading Icon" width="40" height="40" />
 				</div>
 			</div>
 		);
