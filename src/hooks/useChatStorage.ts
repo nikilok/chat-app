@@ -16,6 +16,7 @@ export function useChatStorage() {
     const pendingMessagesRef = useRef<ChatMessage[]>([]);
     const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
     const isSyncingRef = useRef(false);
+    const nextIdRef = useRef(1);
 
     const initDB = useCallback((): Promise<IDBDatabase> => {
         return new Promise((resolve, reject) => {
@@ -101,16 +102,37 @@ export function useChatStorage() {
         }
     }, []);
 
-    const queueMessage = useCallback(
-        (message: ChatMessage): void => {
-            pendingMessagesRef.current.push(message);
+    const generateId = useCallback((): number => {
+        const id = nextIdRef.current;
+        nextIdRef.current += 1;
+        return id;
+    }, []);
 
-            if (pendingMessagesRef.current.length >= 10) {
-                syncPendingMessages();
-            }
-        },
-        [syncPendingMessages],
-    );
+    const initializeNextId = useCallback((maxId: number): void => {
+        nextIdRef.current = maxId + 1;
+    }, []);
+
+    const createMessage = useCallback((
+        text: string,
+        source: "you" | "other",
+        isMessageInAppropriate?: boolean
+    ): ChatMessage => {
+        return {
+            id: generateId(),
+            text,
+            source,
+            timeStamp: Date.now().toString(),
+            isMessageInAppropriate
+        };
+    }, [generateId]);
+
+    const queueMessage = useCallback((message: ChatMessage): void => {
+        pendingMessagesRef.current.push(message);
+
+        if (pendingMessagesRef.current.length >= 10) {
+            syncPendingMessages();
+        }
+    }, [syncPendingMessages]);
 
     const loadMessages = useCallback(async (): Promise<ChatMessage[]> => {
         try {
@@ -123,6 +145,12 @@ export function useChatStorage() {
                 const request = index.getAll();
                 request.onsuccess = () => {
                     const messages = request.result;
+
+                    if (messages.length > 0) {
+                        const maxId = Math.max(...messages.map(m => m.id));
+                        initializeNextId(maxId);
+                    }
+
                     resolve(messages);
                 };
                 request.onerror = () => reject(request.error);
@@ -131,11 +159,12 @@ export function useChatStorage() {
             console.error("Failed to load messages:", error);
             return [];
         }
-    }, [initDB]);
+    }, [initDB, initializeNextId]);
 
     const clearMessages = useCallback(async (): Promise<void> => {
         try {
             pendingMessagesRef.current = [];
+            nextIdRef.current = 1;
 
             const db = await initDB();
             const transaction = db.transaction([STORE_NAME], "readwrite");
@@ -182,6 +211,7 @@ export function useChatStorage() {
     }, []);
 
     return {
+        createMessage,
         queueMessage,
         loadMessages,
         clearMessages,
@@ -189,6 +219,6 @@ export function useChatStorage() {
         startBackgroundSync,
         stopBackgroundSync,
         forceSync,
-        getPendingCount,
+        getPendingCount
     };
 }
