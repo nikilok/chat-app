@@ -126,3 +126,26 @@
 	margin-bottom: 10px;
 	width: 100%;
 }
+
+/* Loading container styles */
+.loadingContainer {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 100vh;
+	width: 100%;
+	background-color: white;
+}
+
+.loadingIconWrapper {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 50px;
+	height: 50px;
+	border: 3px solid #e5e7eb;
+	border-radius: 50%;
+	background-color: white;
+	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px
+		rgba(0, 0, 0, 0.06);
+}
