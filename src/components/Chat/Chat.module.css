@@ -90,7 +90,7 @@
 	border-radius: 200px;
 	background-color: #518efb;
 	transition: opacity 0.2s;
-	transition: opacity 0.2s, transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	transition: opacity 0.2s, transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 	animation: scaleOut 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
