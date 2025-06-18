@@ -2,11 +2,12 @@
 import { defineConfig, mergeConfig } from "vite";
 import { defineConfig as defineVitestConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import svgr from "vite-plugin-svgr";
 
 // https://vite.dev/config/
 export default mergeConfig(
 	defineConfig({
-		plugins: [react()],
+		plugins: [react(), svgr()],
 	}),
 	defineVitestConfig({
 		test: {
@@ -15,5 +16,5 @@ export default mergeConfig(
 			setupFiles: ["./src/test/setup.ts"],
 			css: true,
 		},
-	})
+	}),
 );

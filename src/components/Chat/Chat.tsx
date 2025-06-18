@@ -3,8 +3,8 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
 import ExperimentalAiFilter from "./ExperimentalAiFilter";
-import SendIcon from "../../assets/send.svg";
-import ClockIcon from "../../assets/clock.svg";
+import SendIcon from "../../assets/send.svg?react";
+import ClockIcon from "../../assets/clock.svg?react";
 import { useIsInAppropriate } from "../../hooks/useIsInAppropriate";
 import { useChatStorage } from "../../hooks/useChatStorage";
 import * as emoji from "node-emoji";
@@ -179,7 +179,7 @@ export default function Chat() {
 		return (
 			<div className={styles.loadingContainer}>
 				<div className={styles.loadingIconWrapper}>
-					<img src={ClockIcon} alt="Loading Icon" width="40" height="40" />
+					<ClockIcon width={40} height={40} />
 				</div>
 			</div>
 		);
@@ -295,19 +295,9 @@ export default function Chat() {
 							className={styles.sendButton}
 						>
 							{!isAiLoading ? (
-								<img
-									src={SendIcon}
-									alt="Send Message Icon"
-									width="20"
-									height="20"
-								/>
+								<SendIcon width={20} height={20} color="white" />
 							) : (
-								<img
-									src={ClockIcon}
-									alt="Loading Icon"
-									width="30"
-									height="30"
-								/>
+								<ClockIcon width={20} height={20} color="white" />
 							)}
 						</button>
 					</form>
