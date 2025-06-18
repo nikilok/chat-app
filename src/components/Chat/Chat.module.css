@@ -83,13 +83,47 @@
 	box-shadow: none;
 	font-size: 1em;
 }
-
-.sendButton {
-	border-radius: 200px;
+.baseButton {
 	width: 36px;
 	height: 32px;
 	margin-right: -3px;
+	border-radius: 200px;
 	background-color: #518efb;
+	transition: opacity 0.2s;
+}
+
+.hideButton {
+	opacity: 0;
+	transform: scale(0.3);
+	transition: opacity 0.2s, transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	animation: scaleOut 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.showButton {
+	opacity: 1;
+	transform: scale(1);
+	transition: opacity 0.2s, transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	animation: scaleIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+@keyframes scaleIn {
+	0% {
+		transform: scale(0.3);
+	}
+	100% {
+		transform: scale(1);
+	}
+}
+
+@keyframes scaleOut {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(0.3);
+		opacity: 0;
+	}
 }
 
 /* Virtual item styles */
