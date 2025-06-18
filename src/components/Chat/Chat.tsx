@@ -47,6 +47,7 @@ const groupMessages = (messages: ChatMessage[]): GroupedMessage[] => {
 
 export default function Chat() {
 	const [messages, setMessages] = useState<ChatMessage[]>([]);
+	const [showSubmit, setShowSubmit] = useState<boolean>(false);
 	const [isAiFilteringEnabled, setIsAiFilteringEnabled] = useState(false);
 	const { isLoading: isAiLoading, isInAppropriate } = useIsInAppropriate();
 	const {
@@ -171,8 +172,19 @@ export default function Chat() {
 
 			queueMessage(newMessage);
 
-			(e.target as HTMLFormElement).reset();
+			const form = e.target as HTMLFormElement;
+			form.reset();
+			handleFormReset();
 		}
+	};
+
+	const handleShowSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const message = e.target.value;
+		setShowSubmit(message.length > 0);
+	};
+
+	const handleFormReset = () => {
+		setShowSubmit(false);
 	};
 
 	if (isLoading) {
@@ -274,6 +286,7 @@ export default function Chat() {
 				<div className={styles.chatInputContainer}>
 					<form
 						onSubmit={submitMessage}
+						onReset={handleFormReset}
 						style={{
 							display: "flex",
 							alignItems: "center",
@@ -288,11 +301,12 @@ export default function Chat() {
 							autoComplete="off"
 							className={styles.chatInput}
 							placeholder="Type a message..."
+							onChange={handleShowSubmit}
 						/>
 						<button
 							type="submit"
 							aria-label="Send Message"
-							className={styles.sendButton}
+							className={`${styles.baseButton} ${showSubmit ? styles.showButton : styles.hideButton}`}
 						>
 							{!isAiLoading ? (
 								<SendIcon width={20} height={20} color="white" />
