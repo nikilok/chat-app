@@ -56,7 +56,8 @@ Loading state.
 <img width="400" alt="image" src="https://github.com/user-attachments/assets/fc171ac6-a3dc-4663-ba64-f9612d60d6bc" />
 <img width="402" alt="image" src="https://github.com/user-attachments/assets/26336c14-e18d-45be-a471-b13878573e18" />
 <img width="420" alt="image" src="https://github.com/user-attachments/assets/2e0b890e-0b94-40a3-88e5-8050c1214e3c" />
-
+<img width="420" alt="IMG_7510" src="https://github.com/user-attachments/assets/f5809cfb-5960-4eee-94e2-d7ad38236779" />
+<img width="420" alt="IMG_7509" src="https://github.com/user-attachments/assets/6a82b300-a446-49c4-86c5-0864acc40db7" />
 ## Run tests
 
 ```
