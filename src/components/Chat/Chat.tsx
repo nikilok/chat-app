@@ -306,6 +306,8 @@ export default function Chat() {
 						<button
 							type="submit"
 							aria-label="Send Message"
+							disabled={!showSubmit}
+							aria-hidden={!showSubmit}
 							className={`${styles.baseButton} ${showSubmit ? styles.showButton : styles.hideButton}`}
 						>
 							{!isAiLoading ? (
