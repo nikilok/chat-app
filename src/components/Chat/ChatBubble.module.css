@@ -1,6 +1,7 @@
 .chatBubble {
 	max-width: clamp(200px, 80%, 400px);
-	background-color: #f87171;
+	background-color: #518efb;
+	color: white;
 	border-radius: 10px;
 	border-bottom-right-radius: 2px;
 	margin: 20px;
