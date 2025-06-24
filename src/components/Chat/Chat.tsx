@@ -1,4 +1,12 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import {
+	useState,
+	useRef,
+	useEffect,
+	useCallback,
+	useMemo,
+	startTransition,
+	useActionState,
+} from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import styles from "./Chat.module.css";
 import ChatBubble from "./ChatBubble";
@@ -63,6 +71,8 @@ export default function Chat() {
 	const chatContainerRef = useRef<HTMLDivElement>(null);
 	const formRef = useRef<HTMLFormElement>(null);
 
+	const [_, submitAction, isPending] = useActionState(submitForm, null);
+
 	// Start background sync
 	useEffect(() => {
 		const cleanup = startBackgroundSync();
@@ -115,6 +125,37 @@ export default function Chat() {
 		overscan: 5,
 	});
 
+	async function submitForm(prevState: null, formData: FormData) {
+		if (isAiLoading) {
+			return prevState;
+		}
+		const message = formData.get("messageInput") as string;
+
+		if (message.trim()) {
+			let isMessageInAppropriate = false;
+
+			if (isAiFilteringEnabled) {
+				isMessageInAppropriate = await isInAppropriate(message);
+			}
+
+			const newMessage = createMessage(
+				emoji.emojify(message),
+				"you",
+				isMessageInAppropriate,
+			);
+
+			startTransition(() => {
+				setMessages((s) => [...s, newMessage]);
+			});
+
+			queueMessage(newMessage);
+
+			formRef.current?.reset();
+			handleFormReset();
+		}
+		return null;
+	}
+
 	const scrollToBottom = useCallback(() => {
 		if (chatContainerRef.current && groupedMessages.length > 0) {
 			chatContainerRef.current.scrollTo({
@@ -143,34 +184,6 @@ export default function Chat() {
 			scrollToBottom();
 		}
 	}, [groupedMessages.length, scrollToBottom]);
-
-	async function formAction(formData: FormData): Promise<void> {
-		if (isAiLoading) {
-			return;
-		}
-		const message = formData.get("messageInput") as string;
-
-		if (message.trim()) {
-			let isMessageInAppropriate = false;
-
-			if (isAiFilteringEnabled) {
-				isMessageInAppropriate = await isInAppropriate(message);
-			}
-
-			const newMessage = createMessage(
-				emoji.emojify(message),
-				"you",
-				isMessageInAppropriate,
-			);
-
-			setMessages((s) => [...s, newMessage]);
-
-			queueMessage(newMessage);
-
-			formRef.current?.reset();
-			handleFormReset();
-		}
-	}
 
 	const handleShowSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const message = e.target.value;
@@ -280,7 +293,7 @@ export default function Chat() {
 				<div className={styles.chatInputContainer}>
 					<form
 						ref={formRef}
-						action={formAction}
+						action={submitAction}
 						onReset={handleFormReset}
 						style={{
 							display: "flex",
@@ -305,7 +318,7 @@ export default function Chat() {
 							aria-hidden={!showSubmit}
 							className={`${styles.baseButton} ${showSubmit ? styles.showButton : styles.hideButton}`}
 						>
-							{!isAiLoading ? (
+							{!isAiLoading && !isPending ? (
 								<SendIcon width={20} height={20} color="white" />
 							) : (
 								<ClockIcon width={20} height={20} color="white" />
