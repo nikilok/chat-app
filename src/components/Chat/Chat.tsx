@@ -61,6 +61,7 @@ export default function Chat() {
 	} = useChatStorage();
 
 	const chatContainerRef = useRef<HTMLDivElement>(null);
+	const formRef = useRef<HTMLFormElement>(null);
 
 	// Start background sync
 	useEffect(() => {
@@ -143,17 +144,11 @@ export default function Chat() {
 		}
 	}, [groupedMessages.length, scrollToBottom]);
 
-	const submitMessage = async (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
+	async function formAction(formData: FormData): Promise<void> {
 		if (isAiLoading) {
 			return;
 		}
-		const target = e.target as HTMLFormElement & {
-			elements: HTMLFormControlsCollection & {
-				messageInput: HTMLInputElement;
-			};
-		};
-		const message = target.elements.messageInput.value;
+		const message = formData.get("messageInput") as string;
 
 		if (message.trim()) {
 			let isMessageInAppropriate = false;
@@ -172,11 +167,10 @@ export default function Chat() {
 
 			queueMessage(newMessage);
 
-			const form = e.target as HTMLFormElement;
-			form.reset();
+			formRef.current?.reset();
 			handleFormReset();
 		}
-	};
+	}
 
 	const handleShowSubmit = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const message = e.target.value;
@@ -285,7 +279,8 @@ export default function Chat() {
 			<div className={styles.chatToolbar}>
 				<div className={styles.chatInputContainer}>
 					<form
-						onSubmit={submitMessage}
+						ref={formRef}
+						action={formAction}
 						onReset={handleFormReset}
 						style={{
 							display: "flex",
