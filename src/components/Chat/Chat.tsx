@@ -126,7 +126,7 @@ export default function Chat() {
 	});
 
 	async function submitForm(prevState: null, formData: FormData) {
-		if (isAiLoading) {
+		if (isAiLoading && isPending) {
 			return prevState;
 		}
 		const message = formData.get("messageInput") as string;
