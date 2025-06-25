@@ -1,16 +1,14 @@
-# React + TypeScript + Vite + Vitest + BiomeJS
+# React Chat 
+This is a chat app designed to work on mobile web and desktop.
+It's designed as an offline first chat client.
 
-This template provides a minimal setup to get React working in Vite with HMR, BiomeJS for linting / formatting, and Vitest for testing.
-
-## Testing
-
-This project uses [Vitest](https://vitest.dev/) for unit testing. Vitest is a fast unit test framework powered by Vite, providing:
-
-- ⚡ Fast execution with Vite's build pipeline
-- 🔍 Compatible Jest API
-- 📸 Snapshot testing
-- 🕸 Code coverage reports
-- 🎯 UI mode for interactive testing
+It supports the following
+- supports an offline AI model trained to detect toxicity in messages, and filters out such messages in the ui.
+- Emoji detection to style the app differently
+- use of emoji text (eg: `:heart:`)
+- store all chat in a local indexed db for offline retrieval of messages
+- uses virtual scrolling from tanstack virtual to keep the chat client light with increased chat messages.
+- supports time stamp display, and grouping of messages based on time intervals (eg: messages typed in succession are grouped together, while the rest are parted apart)
 
 ### Available Test Scripts
 
